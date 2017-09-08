@@ -1,0 +1,17 @@
+<%= form_with(model: urling, local: true) do |form| %>
+  <% if urling.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(urling.errors.count, "error") %> prohibited this urling from being saved:</h2>
+
+      <ul>
+      <% urling.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

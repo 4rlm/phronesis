@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Phonings</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @phonings.each do |phoning| %>
+      <tr>
+        <td><%= link_to 'Show', phoning %></td>
+        <td><%= link_to 'Edit', edit_phoning_path(phoning) %></td>
+        <td><%= link_to 'Destroy', phoning, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Phoning', new_phoning_path %>

@@ -1,0 +1,17 @@
+<%= form_with(model: phoning, local: true) do |form| %>
+  <% if phoning.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(phoning.errors.count, "error") %> prohibited this phoning from being saved:</h2>
+
+      <ul>
+      <% phoning.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

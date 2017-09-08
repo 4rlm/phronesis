@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  crm_id: MyString
+  type: 
+  source: MyString
+
+two:
+  crm_id: MyString
+  type: 
+  source: MyString

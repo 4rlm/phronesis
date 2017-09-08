@@ -1,0 +1,32 @@
+<%= form_with(model: crm, local: true) do |form| %>
+  <% if crm.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(crm.errors.count, "error") %> prohibited this crm from being saved:</h2>
+
+      <ul>
+      <% crm.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :crm_id %>
+    <%= form.text_field :crm_id, id: :crm_crm_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :type %>
+    <%= form.text_field :type, id: :crm_type %>
+  </div>
+
+  <div class="field">
+    <%= form.label :source %>
+    <%= form.text_field :source, id: :crm_source %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

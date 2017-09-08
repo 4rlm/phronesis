@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Addressings</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @addressings.each do |addressing| %>
+      <tr>
+        <td><%= link_to 'Show', addressing %></td>
+        <td><%= link_to 'Edit', edit_addressing_path(addressing) %></td>
+        <td><%= link_to 'Destroy', addressing, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Addressing', new_addressing_path %>
