@@ -1,22 +1,20 @@
-Steps and Notes on Setting up Polymorphic Associations
-
-======================================
-============= PHRONESIS =============
+Description: Steps and Notes on Setting up Polymorphic Associations, Module via Concerns, Servicers Class.
+Blog Example: http://www.xyzpub.com/en/ruby-on-rails/3.2/activerecord_polymorphic.html
 ======================================
 
+
 ======================================
+0) RAILS NEW (app_name)
+======================================
+
 $ rails new phronesis
 $ cd phronesis
-
-gem 'hirb'
-# require 'hirb'
-# Hirb.enable
-
-================================
+======================================
 
 
-================================
-1) SCAFFOLD ====================
+======================================
+1) SCAFFOLD
+======================================
 
 Account ----
   $ rails g scaffold Account status source
@@ -72,11 +70,12 @@ $ rake db:migrate
     $ rails g scaffold Geo status
     $ rails g scaffold Who status
 
-================================
+======================================
 
 
-================================
-2) MODEL CLASSES ====================
+======================================
+2) MODEL CLASSES
+======================================
 
 Account ----
   -class Account
@@ -166,12 +165,12 @@ Url ----
   -class Urling
     belongs_to :urlable, polymorphic: true
     belongs_to :url
---------
+======================================
 
 
 ======================================
-
-3) Add Sample Data ====================
+3) Add Sample Data (VIA RAILS CONSOLE)
+======================================
 
 $ rails c
 # require 'hirb'
@@ -199,196 +198,66 @@ $ rails c
 >> contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
 ======================================
 
-4) View Data ======================
->> Phone.all
->> Phoning.all
->> Account.all
->> Contact.all
->> sfdc_ac_001.phones
->> Bob.phones
-
-
-
->> Tag.last.taggable
-#############################
-
-
-
-
-#############################
-$ account crm_account_id status
-$ contact crm_account_id crm_contact_id status first_name last_name
-$ bot status
-$ geo status
-$ who status
-$ phone phone
-
-#############################
->> beetle = Car.create(name: 'Beetle')
->> mountainbike = Bike.create(name: 'Mountainbike')
-
-5) Add Tags ======================
->> beetle.tags.create(name: 'blue')
->> mountainbike.tags.create(name: 'black')
->> beetle.tags.create(name: 'Automatic')
-
-6) View Data ======================
->> Tag.all
->> beetle.tags
->> Tag.last.taggable
-#############################
-
-
-
-
-
 
 ======================================
-============= Blog Example ===========
-http://www.xyzpub.com/en/ruby-on-rails/3.2/activerecord_polymorphic.html
+4) View Data
+======================================
+
+Phone.all
+Phoning.all
+Account.all
+Contact.all
+Bob.phones
+Phone.last.phonable
 ======================================
 
 
-1) Create App =====================
-$ rails new poly (can be any name for rails app)
-$ cd example
+======================================
+5) APPLICATION CONFIG
+======================================
 
-2) Generate Models ================
-Tip: Car and Bike are clear. For Tag we use the fields taggable_type and taggable_id, to give ActiveRecord an opportunity to save the assignment for the polymorphic association. We have to enter it accordingly in the model.
--------------------------
-
-$ rails generate model car name
-$ rails generate model bike name
-$ rails generate model tag name taggable_type taggable_id:integer
-$ rake db:migrate
-
-3) Edit Model Classes ============
-Tip: For Car and Bike we use an additional :as => :taggable when defining has_many. For Tag we use belongs_to :taggable, :polymorphic => true to indicate the polymorphic association to ActiveRecord.
--------------------------
-
-app/models/tag.rb
-class Tag < ActiveRecord::Base
-  attr_accessible :name, :taggable_id, :taggable_type
-  belongs_to :taggable, :polymorphic => true
-end
--------------------------
-
-app/models/car.rb
-class Car < ActiveRecord::Base
-  attr_accessible :name
-  has_many :tags, :as => :taggable
-end
--------------------------
-
-app/models/bike.rb
-class Bike < ActiveRecord::Base
-  attr_accessible :name
-  has_many :tags, :as => :taggable
-end
-
-4) Create Car and Bike ===========
-$ rails console
->> beetle = Car.create(name: 'Beetle')
->> mountainbike = Bike.create(name: 'Mountainbike')
-
-5) Add Tags ======================
->> beetle.tags.create(name: 'blue')
->> mountainbike.tags.create(name: 'black')
->> beetle.tags.create(name: 'Automatic')
-
-6) View Data ======================
->> Tag.all
->> beetle.tags
->> Tag.last.taggable
-
-
-
-
+PATH: config/application.rb
+config.autoload_paths << File.join(config.root, "lib")
+config.autoload_paths += %W(#{config.root}/controllers/concerns)
+# config.autoload_paths += %W(#{config.root}/lib/servicers)
+config.autoload_paths << Rails.root.join('lib/servicers')
+config.autoload_paths += Dir["#{config.root}/lib/servicers"]
 
 
 ======================================
-============= GH Example =============
+6) CREATE MODULE
 ======================================
 
+PATH: controllers/concerns/account_parser.rb
+module AccountParser
+  extend ActiveSupport::Concern
 
-1) MIGRATIONS ======================
-create_taggings.rb
-class CreateTaggings < ActiveRecord::Migration[5.0]
-  def change
-    create_table :taggings do |t|
-      t.references :tag, index: true
-
-      t.references :taggable, polymorphic: true, index: true
-      t.timestamps
-    end
+  def welcome
+    puts "Welcome to AccountParser!"
   end
-end
--------------------------
 
-create_tags.rb
-class CreateTags < ActiveRecord::Migration[5.0]
-  def change
-    create_table :tags do |t|
-      t.string :name
-      t.timestamps
-    end
+end
+======================================
+
+
+======================================
+7) CREATE SERVICER CLASS
+======================================
+
+PATH: lib/servicers/sampler.rb
+## Call: AccountSaver.new.start_account_saver
+## Description: ........
+
+class AccountSaver
+  include AccountParser
+
+  def initialize
+    puts "\n\n== Welcome to the AccountSaver Class! ==\n\n"
   end
-end
--------------------------
 
-create_entries.rb
-class CreateEntries < ActiveRecord::Migration[5.0]
-  def change
-    create_table :entries do |t|
-      t.string :author
-      t.string :title
-      t.string :body
-      t.timestamps
-    end
+  def start_account_saver
+    welcome
   end
+
 end
-
-
-2) MODEL CLASSES ====================
-models/tagging.rb
-class Tagging < ApplicationRecord
-  belongs_to :taggable, polymorphic: true
-  belongs_to :tag
-end
--------------------------
-
-models/tag.rb
-class Tag < ApplicationRecord
-  has_many :taggings
-  has_many :entries, through: :taggings, source: :taggable, source_type: :Entry
-end
--------------------------
-
-models/entry.rb
-class Entry < ApplicationRecord
-  has_many :taggings, as: :taggable
-  has_many :tags, through: :taggings
-end
-
-###################################################
-
-#### PhoneInstance / TopicMapping vs Phonings ####
-
-class Genre < ActiveRecord::Base
-  has_many :genre_instances
-end
-
-class GenreInstance < ActiveRecord::Base
-  belongs_to :genre
-  belongs_to :genreable, polymorphic: true
-end
-
-class Book < ActiveRecord::Base
-  has_many :genre_insances, as: :genreable
-  has_many :genres, through: :genre_instances
-end
-
-class Movie < ActiveRecord::Base
-  has_many :genre_insances, as: :genreable
-  has_many :genres, through: :genre_instances
-end
+======================================
