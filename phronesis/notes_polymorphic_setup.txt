@@ -1,0 +1,398 @@
+Steps and Notes on Setting up Polymorphic Associations
+
+
+
+======================================
+============= PHRONESIS =============
+======================================
+
+1) Change PhoneMapping to Phoning
+2) Account Fields:
+
+
+======================================
+$ rails new phronesis
+$ cd phronesis
+
+gem 'hirb'
+# require 'hirb'
+# Hirb.enable
+
+================================
+
+
+================================
+1) SCAFFOLD ====================
+
+Account & Contact ----
+  $ rails generate scaffold Account status source
+  $ rails generate scaffold Contact status source first_name last_name email
+
+Phone ----
+  $ rails generate scaffold Phone phone
+    t.index :phone, unique: true
+
+  $ rails generate scaffold Phoning
+    t.references :phone, index: true
+    t.references :phonable, polymorphic: true, index: true
+
+Url ----
+  $ rails generate scaffold Url url valid:boolean
+    t.index :url, unique: true
+
+  $ rails generate scaffold Urling
+    t.references :url, index: true
+    t.references :urlable, polymorphic: true, index: true
+
+Org ----
+  $ rails generate scaffold Org name
+    t.index :org, unique: true
+
+  $ rails generate scaffold Orging
+    t.references :org, index: true
+    t.references :orgable, polymorphic: true, index: true
+
+Address ----
+  $ rails generate scaffold Address street city zip state full_address address_pin
+    t.references :address, index: true
+
+  $ rails generate scaffold Addressing
+    t.references :address, index: true
+    t.references :addressable, polymorphic: true, index: true
+
+Crm ----
+  $ rails generate scaffold Crm crm_id type source
+    t.references :crm, index: true
+
+  $ rails generate scaffold Crming
+    t.references :crm, index: true
+    t.references :crmable, polymorphic: true, index: true
+----
+
+$ rake db:migrate
+
+    ========= Future =========
+    $ rails generate scaffold Bot status
+    $ rails generate scaffold Geo status
+    $ rails generate scaffold Who status
+
+================================
+
+
+================================
+2) MODEL CLASSES ====================
+
+Account ----
+  class Account
+    has_many :phonings, as: :phonable
+    has_many :phones, through: :phonings
+
+    has_many :urlings, as: :urlable
+    has_many :urls, through: :urlings
+
+    has_many :orgings, as: :orgable
+    has_many :orgs, through: :orgings
+
+    has_many :addressings, as: :addressable
+    has_many :addresses, through: :addressings
+
+    has_many :crmings, as: :crmable
+    has_many :crms, through: :crmings
+
+Contact ----
+  class Contact
+    has_many :phonings, as: :phonable
+    has_many :phones, through: :phonings
+
+    has_many :urlings, as: :urlable
+    has_many :urls, through: :urlings
+
+    has_many :orgings, as: :orgable
+    has_many :orgs, through: :orgings
+
+    has_many :addressings, as: :addressable
+    has_many :addresses, through: :addressings
+
+    has_many :crmings, as: :crmable
+    has_many :crms, through: :crmings
+
+Phone ----
+  class Phone
+    validates :phone, uniqueness: true
+    has_many :phonings
+    has_many :accounts, through: :phonings, source: :phonable, source_type: :Account
+    has_many :contacts, through: :phonings, source: :phonable, source_type: :Contact
+
+  class Phoning
+    belongs_to :phonable, polymorphic: true
+    belongs_to :phone
+
+Url ----
+  class Url
+    validates :url, uniqueness: true
+    has_many :urlings
+    has_many :accounts, through: :urlings, source: :urlable, source_type: :Account
+    has_many :contacts, through: :urlings, source: :urlable, source_type: :Contact
+
+  class Urling
+    belongs_to :urlable, polymorphic: true
+    belongs_to :url
+
+Org ----
+  class Url
+    validates :org, uniqueness: true
+    has_many :orgings
+    has_many :accounts, through: :orgings, source: :orgable, source_type: :Account
+    has_many :contacts, through: :orgings, source: :orgable, source_type: :Contact
+
+  class Urling
+    belongs_to :orgable, polymorphic: true
+    belongs_to :org
+
+Address ----
+  class Url
+    validates :address, uniqueness: true
+    has_many :addressings
+    has_many :accounts, through: :addressings, source: :addressable, source_type: :Account
+    has_many :contacts, through: :addressings, source: :addressable, source_type: :Contact
+
+  class Urling
+    belongs_to :addressable, polymorphic: true
+    belongs_to :address
+
+Crm ----
+  class Crm
+    validates :crm, uniqueness: true
+    has_many :crmings
+    has_many :accounts, through: :crmings, source: :crmable, source_type: :Account
+    has_many :contacts, through: :crmings, source: :crmable, source_type: :Contact
+
+  class Urling
+    belongs_to :crmable, polymorphic: true
+    belongs_to :crm
+--------
+
+
+======================================
+
+3) Add Sample Data ====================
+
+$ rails c
+# require 'hirb'
+# Hirb.enable
+
+========== Add Accounts & Phone:
+
+>> account = Account.create(status: 'AccountScraper', source: 'CRM')
+>> account.phones.find_or_create_by(phone: '(123) 456-7890')
+
+>> account = Account.create(status: 'ContactScraper', source: 'Bot')
+>> account.phones.find_or_create_by(phone: '(456) 789-0123')
+
+========== Add Contacts & Phone:
+
+>> contact = Contact.create(status: 'Imported', source: 'CRM', first_name: 'Bob', last_name: 'Miller')
+>> contact.phones << Phone.find_or_create_by(phone: '(123) 456-7890')
+
+>> contact = Contact.create(status: 'ContactScraper', source: 'Bot', first_name: 'Sally', last_name: 'Yates')
+>> contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
+
+========== Find Account or Contact, then Add Phone:
+
+>> contact = Contact.find_by(first_name: 'Sally')
+>> contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
+======================================
+
+4) View Data ======================
+>> Phone.all
+>> Phoning.all
+>> Account.all
+>> Contact.all
+>> sfdc_ac_001.phones
+>> Bob.phones
+
+
+
+>> Tag.last.taggable
+#############################
+
+
+
+
+#############################
+$ account crm_account_id status
+$ contact crm_account_id crm_contact_id status first_name last_name
+$ bot status
+$ geo status
+$ who status
+$ phone phone
+
+#############################
+>> beetle = Car.create(name: 'Beetle')
+>> mountainbike = Bike.create(name: 'Mountainbike')
+
+5) Add Tags ======================
+>> beetle.tags.create(name: 'blue')
+>> mountainbike.tags.create(name: 'black')
+>> beetle.tags.create(name: 'Automatic')
+
+6) View Data ======================
+>> Tag.all
+>> beetle.tags
+>> Tag.last.taggable
+#############################
+
+
+
+
+
+
+======================================
+============= Blog Example ===========
+http://www.xyzpub.com/en/ruby-on-rails/3.2/activerecord_polymorphic.html
+======================================
+
+
+1) Create App =====================
+$ rails new poly (can be any name for rails app)
+$ cd example
+
+2) Generate Models ================
+Tip: Car and Bike are clear. For Tag we use the fields taggable_type and taggable_id, to give ActiveRecord an opportunity to save the assignment for the polymorphic association. We have to enter it accordingly in the model.
+-------------------------
+
+$ rails generate model car name
+$ rails generate model bike name
+$ rails generate model tag name taggable_type taggable_id:integer
+$ rake db:migrate
+
+3) Edit Model Classes ============
+Tip: For Car and Bike we use an additional :as => :taggable when defining has_many. For Tag we use belongs_to :taggable, :polymorphic => true to indicate the polymorphic association to ActiveRecord.
+-------------------------
+
+app/models/tag.rb
+class Tag < ActiveRecord::Base
+  attr_accessible :name, :taggable_id, :taggable_type
+  belongs_to :taggable, :polymorphic => true
+end
+-------------------------
+
+app/models/car.rb
+class Car < ActiveRecord::Base
+  attr_accessible :name
+  has_many :tags, :as => :taggable
+end
+-------------------------
+
+app/models/bike.rb
+class Bike < ActiveRecord::Base
+  attr_accessible :name
+  has_many :tags, :as => :taggable
+end
+
+4) Create Car and Bike ===========
+$ rails console
+>> beetle = Car.create(name: 'Beetle')
+>> mountainbike = Bike.create(name: 'Mountainbike')
+
+5) Add Tags ======================
+>> beetle.tags.create(name: 'blue')
+>> mountainbike.tags.create(name: 'black')
+>> beetle.tags.create(name: 'Automatic')
+
+6) View Data ======================
+>> Tag.all
+>> beetle.tags
+>> Tag.last.taggable
+
+
+
+
+
+
+======================================
+============= GH Example =============
+======================================
+
+
+1) MIGRATIONS ======================
+create_taggings.rb
+class CreateTaggings < ActiveRecord::Migration[5.0]
+  def change
+    create_table :taggings do |t|
+      t.references :tag, index: true
+
+      t.references :taggable, polymorphic: true, index: true
+      t.timestamps
+    end
+  end
+end
+-------------------------
+
+create_tags.rb
+class CreateTags < ActiveRecord::Migration[5.0]
+  def change
+    create_table :tags do |t|
+      t.string :name
+      t.timestamps
+    end
+  end
+end
+-------------------------
+
+create_entries.rb
+class CreateEntries < ActiveRecord::Migration[5.0]
+  def change
+    create_table :entries do |t|
+      t.string :author
+      t.string :title
+      t.string :body
+      t.timestamps
+    end
+  end
+end
+
+
+2) MODEL CLASSES ====================
+models/tagging.rb
+class Tagging < ApplicationRecord
+  belongs_to :taggable, polymorphic: true
+  belongs_to :tag
+end
+-------------------------
+
+models/tag.rb
+class Tag < ApplicationRecord
+  has_many :taggings
+  has_many :entries, through: :taggings, source: :taggable, source_type: :Entry
+end
+-------------------------
+
+models/entry.rb
+class Entry < ApplicationRecord
+  has_many :taggings, as: :taggable
+  has_many :tags, through: :taggings
+end
+
+###################################################
+
+#### PhoneInstance / TopicMapping vs Phonings ####
+
+class Genre < ActiveRecord::Base
+  has_many :genre_instances
+end
+
+class GenreInstance < ActiveRecord::Base
+  belongs_to :genre
+  belongs_to :genreable, polymorphic: true
+end
+
+class Book < ActiveRecord::Base
+  has_many :genre_insances, as: :genreable
+  has_many :genres, through: :genre_instances
+end
+
+class Movie < ActiveRecord::Base
+  has_many :genre_insances, as: :genreable
+  has_many :genres, through: :genre_instances
+end
