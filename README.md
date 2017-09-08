@@ -1,22 +1,20 @@
-# README
-
-======================================
-============= PHRONESIS =============
+Description: Steps and Notes on Setting up Polymorphic Associations, Module via Concerns, Servicers Class.
+Blog Example: http://www.xyzpub.com/en/ruby-on-rails/3.2/activerecord_polymorphic.html
 ======================================
 
+
 ======================================
+0) RAILS NEW (app_name)
+======================================
+
 $ rails new phronesis
 $ cd phronesis
-
-gem 'hirb'
-# require 'hirb'
-# Hirb.enable
-
-================================
+======================================
 
 
-================================
-1) SCAFFOLD ====================
+======================================
+1) SCAFFOLD
+======================================
 
 Account ----
   $ rails g scaffold Account status source
@@ -72,11 +70,12 @@ $ rake db:migrate
     $ rails g scaffold Geo status
     $ rails g scaffold Who status
 
-================================
+======================================
 
 
-================================
-2) MODEL CLASSES ====================
+======================================
+2) MODEL CLASSES
+======================================
 
 Account ----
   -class Account
@@ -166,43 +165,99 @@ Url ----
   -class Urling
     belongs_to :urlable, polymorphic: true
     belongs_to :url
---------
+======================================
 
 
 ======================================
-
-3) Add Sample Data ====================
+3) Add Sample Data (VIA RAILS CONSOLE)
+======================================
 
 $ rails c
 # require 'hirb'
 # Hirb.enable
 
 ========== Add Accounts & Phone:
-account = Account.create(status: 'AccountScraper', source: 'CRM')
-account.phones.find_or_create_by(phone: '(123) 456-7890')
 
-account = Account.create(status: 'ContactScraper', source: 'Bot')
-account.phones.find_or_create_by(phone: '(456) 789-0123')
+>> account = Account.create(status: 'AccountScraper', source: 'CRM')
+>> account.phones.find_or_create_by(phone: '(123) 456-7890')
+
+>> account = Account.create(status: 'ContactScraper', source: 'Bot')
+>> account.phones.find_or_create_by(phone: '(456) 789-0123')
 
 ========== Add Contacts & Phone:
-contact = Contact.create(status: 'Imported', source: 'CRM', first_name: 'Bob', last_name: 'Miller')
-contact.phones << Phone.find_or_create_by(phone: '(123) 456-7890')
 
-contact = Contact.create(status: 'ContactScraper', source: 'Bot', first_name: 'Sally', last_name: 'Yates')
-contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
+>> contact = Contact.create(status: 'Imported', source: 'CRM', first_name: 'Bob', last_name: 'Miller')
+>> contact.phones << Phone.find_or_create_by(phone: '(123) 456-7890')
+
+>> contact = Contact.create(status: 'ContactScraper', source: 'Bot', first_name: 'Sally', last_name: 'Yates')
+>> contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
 
 ========== Find Account or Contact, then Add Phone:
 
-contact = Contact.find_by(first_name: 'Sally')
-contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
+>> contact = Contact.find_by(first_name: 'Sally')
+>> contact.phones << Phone.find_or_create_by(phone: '(456) 789-0123')
 ======================================
 
-4) View Data ======================
+
+======================================
+4) View Data
+======================================
+
 Phone.all
 Phoning.all
 Account.all
 Contact.all
-sfdc_ac_001.phones
 Bob.phones
 Phone.last.phonable
-#############################
+======================================
+
+
+======================================
+5) APPLICATION CONFIG
+======================================
+
+PATH: config/application.rb
+config.autoload_paths << File.join(config.root, "lib")
+config.autoload_paths += %W(#{config.root}/controllers/concerns)
+# config.autoload_paths += %W(#{config.root}/lib/servicers)
+config.autoload_paths << Rails.root.join('lib/servicers')
+config.autoload_paths += Dir["#{config.root}/lib/servicers"]
+
+
+======================================
+6) CREATE MODULE
+======================================
+
+PATH: controllers/concerns/account_parser.rb
+module AccountParser
+  extend ActiveSupport::Concern
+
+  def welcome
+    puts "Welcome to AccountParser!"
+  end
+
+end
+======================================
+
+
+======================================
+7) CREATE SERVICER CLASS
+======================================
+
+PATH: lib/servicers/sampler.rb
+## Call: AccountSaver.new.start_account_saver
+## Description: ........
+
+class AccountSaver
+  include AccountParser
+
+  def initialize
+    puts "\n\n== Welcome to the AccountSaver Class! ==\n\n"
+  end
+
+  def start_account_saver
+    welcome
+  end
+
+end
+======================================
